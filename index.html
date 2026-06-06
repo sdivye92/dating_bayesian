@@ -4,9 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Should You Confess? A Bayesian Decision-Theoretic Framework</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="./style.css">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
 </head>
 <body>
 
@@ -26,10 +32,6 @@
 <div id="p5" class="part"></div>
 
 <script>
-window.MathJax = {
-  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
-  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
-};
 
 // Load part files
 async function loadParts() {
@@ -46,8 +48,8 @@ async function loadParts() {
     }
   }
 
-  // Trigger MathJax re-render after content is loaded
-  if (window.MathJax) {
+  // Trigger MathJax re-render after all content is loaded
+  if (window.MathJax && window.MathJax.typesetPromise) {
     window.MathJax.typesetPromise().catch(err => console.log(err));
   }
 }
@@ -57,6 +59,12 @@ function show(n, el) {
   document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('p' + n).classList.add('active');
   if (el) el.classList.add('active');
+
+  // Re-render MathJax for the newly visible part
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise([document.getElementById('p' + n)]).catch(err => console.log(err));
+  }
+
   window.scrollTo(0, 0);
 }
 
