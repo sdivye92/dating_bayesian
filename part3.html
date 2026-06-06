@@ -1,0 +1,200 @@
+<div id="p3" class="part">
+<div class="art-header">
+  <div class="part-label">Part III of V</div>
+  <h1>The Skew-Normal Latent Desirability Model: Full Derivation</h1>
+  <p class="sub">Replacing the Normal assumption with a Skew-Normal, deriving the accept/bench/reject probabilities via the Skew-Normal CDF and Owen's T-function, obtaining the closed-form EU expressions, and interpreting every term psychologically.</p>
+</div>
+
+<p class="dropcap">The Normal assumption on the latent variable \(X\) is analytically convenient but structurally dishonest. Dating markets are not symmetric. A highly selective evaluator operates in a distribution of perceived values that is skewed: most candidates cluster below the commitment threshold, a small tail of exceptional matches clears it decisively, and the evaluator's comparison process compresses the middle of the distribution. A symmetric Gaussian cannot represent this. The Skew-Normal distribution provides the correct generalization.</p>
+
+<h2><span class="sn">§1</span> The Skew-Normal Distribution</h2>
+
+<p>The Skew-Normal distribution \(\mathrm{SN}(\xi, \omega, \alpha)\) generalizes the Gaussian by introducing a shape parameter \(\alpha\) that controls asymmetry. Its PDF and CDF are:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Skew-Normal PDF</span>
+\[ f_X(x) = \frac{2}{\omega}\,\phi\!\left(\frac{x - \xi}{\omega}\right)\Phi\!\left(\alpha\,\frac{x-\xi}{\omega}\right) \]
+</div>
+
+<div class="eq-wrap">
+<span class="eq-label">Skew-Normal CDF</span>
+\[ F_X(x) = \Phi\!\left(\frac{x - \xi}{\omega}\right) - 2\,T\!\left(\frac{x-\xi}{\omega},\, \alpha\right) \]
+</div>
+
+<p>where \(\phi\) is the standard normal PDF, \(\Phi\) is the standard normal CDF, and \(T(h, a)\) is Owen's T-function:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Owen's T-Function</span>
+\[ T(h, a) = \frac{1}{2\pi}\int_0^a \frac{\exp\!\left(-\tfrac{h^2(1+x^2)}{2}\right)}{1+x^2}\,dx \]
+</div>
+
+<div class="defn">
+  <div class="defn-label">Parameter Interpretation</div>
+  <p style="margin:0;">
+  \(\xi\): Location parameter. The confessor's central standing estimate, i.e., expected relative value to the evaluator.<br><br>
+  \(\omega > 0\): Scale parameter. Uncertainty/noise in the evaluator's perception of the confessor's value. Higher \(\omega\) reflects more ambiguous signals.<br><br>
+  \(\alpha\): Skewness parameter. \(\alpha > 0\) produces right-skew (long upper tail: winner-take-most market with a few outstanding options). \(\alpha < 0\) produces left-skew (long lower tail: most candidates clustering far below threshold). \(\alpha = 0\) recovers the Normal.
+  </p>
+</div>
+
+<h2><span class="sn">§2</span> Latent Variable Model</h2>
+
+<p>We assume:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Skew-Normal Latent Assumption</span>
+\[ X \sim \mathrm{SN}(\xi, \omega, \alpha) \]
+</div>
+
+<p>where \(X = V - T_B\) is the confessor's relative value, and the threshold structure from Part II applies:</p>
+
+<div class="eq-wrap">
+\[
+S(X, \Delta) = \begin{cases}
+R & X < 0 \\
+B & 0 \leq X < \Delta \\
+A & X \geq \Delta
+\end{cases}
+\]
+</div>
+
+<h2><span class="sn">§3</span> Region Probabilities from the Skew-Normal CDF</h2>
+
+<p>The three outcome probabilities are now computed from the Skew-Normal CDF \(F_{SN}(x; \xi, \omega, \alpha)\):</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Reject Probability</span>
+\[ p_R = P(X < 0) = F_{SN}(0;\, \xi, \omega, \alpha) = \Phi\!\left(\frac{-\xi}{\omega}\right) - 2\,T\!\left(\frac{-\xi}{\omega},\, \alpha\right) \]
+</div>
+
+<div class="eq-wrap">
+<span class="eq-label">Accept Probability</span>
+\[ p_A = P(X \geq \Delta) = 1 - F_{SN}(\Delta;\, \xi, \omega, \alpha) = 1 - \Phi\!\left(\frac{\Delta - \xi}{\omega}\right) + 2\,T\!\left(\frac{\Delta-\xi}{\omega},\, \alpha\right) \]
+</div>
+
+<div class="eq-wrap">
+<span class="eq-label">Bench Probability</span>
+\[ p_B = P(0 \leq X < \Delta) = F_{SN}(\Delta) - F_{SN}(0) \]
+\[ = \Phi\!\left(\frac{\Delta-\xi}{\omega}\right) - \Phi\!\left(\frac{-\xi}{\omega}\right) - 2\,T\!\left(\frac{\Delta-\xi}{\omega},\alpha\right) + 2\,T\!\left(\frac{-\xi}{\omega},\alpha\right) \]
+</div>
+
+<h2><span class="sn">§4</span> Expected Utility of Confessing: Full Derivation</h2>
+
+<p>Substitute the Skew-Normal probabilities into the payoff matrix formula \(\mathrm{EU}_C = 10p_A - 3p_B - 8p_R\):</p>
+
+<div class="eq-wrap">
+<span class="eq-label">EU(Confess) — Full Expansion</span>
+\[
+\mathrm{EU}_C = 10\!\left[1 - \Phi\!\left(\tfrac{\Delta-\xi}{\omega}\right) + 2T\!\left(\tfrac{\Delta-\xi}{\omega}, \alpha\right)\right]
+\]
+\[
+- 3\!\left[\Phi\!\left(\tfrac{\Delta-\xi}{\omega}\right) - \Phi\!\left(\tfrac{-\xi}{\omega}\right) - 2T\!\left(\tfrac{\Delta-\xi}{\omega},\alpha\right) + 2T\!\left(\tfrac{-\xi}{\omega},\alpha\right)\right]
+\]
+\[
+- 8\!\left[\Phi\!\left(\tfrac{-\xi}{\omega}\right) - 2T\!\left(\tfrac{-\xi}{\omega},\alpha\right)\right]
+\]
+</div>
+
+<p>Grouping by term type:</p>
+
+<ul class="bul">
+  <li><strong>Constant:</strong> \(10\)</li>
+  <li><strong>Coefficient on \(\Phi\!\left(\frac{\Delta-\xi}{\omega}\right)\):</strong> \(-10 - 3 = -13\)</li>
+  <li><strong>Coefficient on \(\Phi\!\left(\frac{-\xi}{\omega}\right)\):</strong> \(+3 - 8 = -5\)</li>
+  <li><strong>Coefficient on \(T\!\left(\frac{\Delta-\xi}{\omega}, \alpha\right)\):</strong> \(20 + 6 = +26\)</li>
+  <li><strong>Coefficient on \(T\!\left(\frac{-\xi}{\omega}, \alpha\right)\):</strong> \(-6 + 16 = +10\)</li>
+</ul>
+
+<div class="eq-wrap">
+<span class="eq-label">Simplified EU(Confess) — Skew-Normal</span>
+\[
+\mathrm{EU}_C = 10 - 13\,\Phi\!\left(\frac{\Delta-\xi}{\omega}\right) - 5\,\Phi\!\left(\frac{-\xi}{\omega}\right) + 26\,T\!\left(\frac{\Delta-\xi}{\omega}, \alpha\right) + 10\,T\!\left(\frac{-\xi}{\omega}, \alpha\right)
+\]
+</div>
+
+<h2><span class="sn">§5</span> Expected Utility of Not Confessing: Full Derivation</h2>
+
+<p>Substitute into \(\mathrm{EU}_D = -6p_A - 2p_B + p_R\):</p>
+
+<div class="eq-wrap">
+<span class="eq-label">EU(Don't Confess) — Full Expansion</span>
+\[
+\mathrm{EU}_D = -6\!\left[1 - \Phi\!\left(\tfrac{\Delta-\xi}{\omega}\right) + 2T\!\left(\tfrac{\Delta-\xi}{\omega},\alpha\right)\right]
+\]
+\[
+- 2\!\left[\Phi\!\left(\tfrac{\Delta-\xi}{\omega}\right) - \Phi\!\left(\tfrac{-\xi}{\omega}\right) - 2T\!\left(\tfrac{\Delta-\xi}{\omega},\alpha\right) + 2T\!\left(\tfrac{-\xi}{\omega},\alpha\right)\right]
+\]
+\[
++ \Phi\!\left(\tfrac{-\xi}{\omega}\right) - 2T\!\left(\tfrac{-\xi}{\omega},\alpha\right)
+\]
+</div>
+
+<p>Collecting:</p>
+
+<ul class="bul">
+  <li><strong>Constant:</strong> \(-6\)</li>
+  <li><strong>Coefficient on \(\Phi\!\left(\frac{\Delta-\xi}{\omega}\right)\):</strong> \(+6 - 2 = +4\)</li>
+  <li><strong>Coefficient on \(\Phi\!\left(\frac{-\xi}{\omega}\right)\):</strong> \(+2 + 1 = +3\)</li>
+  <li><strong>Coefficient on \(T\!\left(\frac{\Delta-\xi}{\omega}, \alpha\right)\):</strong> \(-12 + 4 = -8\)</li>
+  <li><strong>Coefficient on \(T\!\left(\frac{-\xi}{\omega}, \alpha\right)\):</strong> \(-4 - 2 = -6\)</li>
+</ul>
+
+<div class="eq-wrap">
+<span class="eq-label">Simplified EU(Don't Confess) — Skew-Normal</span>
+\[
+\mathrm{EU}_D = -6 + 4\,\Phi\!\left(\frac{\Delta-\xi}{\omega}\right) + 3\,\Phi\!\left(\frac{-\xi}{\omega}\right) - 8\,T\!\left(\frac{\Delta-\xi}{\omega}, \alpha\right) - 6\,T\!\left(\frac{-\xi}{\omega}, \alpha\right)
+\]
+</div>
+
+<h2><span class="sn">§6</span> The Closed-Form Decision Function \(g(\xi, \Delta)\)</h2>
+
+<p>The net advantage of confessing is \(g(\xi, \Delta) = \mathrm{EU}_C - \mathrm{EU}_D\). Subtracting:</p>
+
+<div class="dbox">
+  <div class="dbox-label">Closed-Form Decision Function</div>
+  <div class="dbox-rule" style="font-size:15px;line-height:2;font-family:'EB Garamond',serif;text-align:left;padding:0 8px;">
+    \[
+    g(\xi, \Delta) = 16 - 17\,\Phi\!\left(\frac{\Delta-\xi}{\omega}\right) - 8\,\Phi\!\left(\frac{-\xi}{\omega}\right)
+    + 34\,T\!\left(\frac{\Delta-\xi}{\omega},\alpha\right) + 16\,T\!\left(\frac{-\xi}{\omega},\alpha\right)
+    \]
+    <div style="text-align:center;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#f0c070;">Confess iff &nbsp; g(&xi;, &Delta;) &gt; 0</div>
+  </div>
+</div>
+
+<p>The coefficient derivations: constant \(10 - (-6) = 16\); on \(\Phi(\frac{\Delta-\xi}{\omega})\): \(-13 - 4 = -17\); on \(\Phi(\frac{-\xi}{\omega})\): \(-5 - 3 = -8\); on \(T(\frac{\Delta-\xi}{\omega},\alpha)\): \(26 - (-8) = 34\); on \(T(\frac{-\xi}{\omega},\alpha)\): \(10 - (-6) = 16\).</p>
+
+<h2><span class="sn">§7</span> Intuitive Interpretation of Each Term</h2>
+
+<h3>The Constant +16</h3>
+<p>This is the net utility differential between confession and silence in the favorable regime (when the evaluator would accept and both thresholds are cleared). \(u_{CA} - u_{DA} = 10 - (-6) = 16\). It represents the maximum possible advantage of confessing.</p>
+
+<h3>The Term \(-17\,\Phi\!\left(\frac{\Delta-\xi}{\omega}\right)\)</h3>
+<p>This measures probability mass below the acceptance threshold. High value means the confessor likely falls short of commitment-worthiness. Specifically, \(-17 = -(13 + 4) = -(\text{Confess cost coefficient}) - (\text{Don't-Confess cost coefficient})\) on the acceptance-threshold CDF. As this term grows, confessing becomes less attractive.</p>
+
+<h3>The Term \(-8\,\Phi\!\left(\frac{-\xi}{\omega}\right)\)</h3>
+<p>This measures probability mass below the bench threshold, i.e., outright rejection probability. \(-8 = -(5 + 3)\). Higher rejection probability makes confession increasingly costly.</p>
+
+<h3>The Owen's T Terms: \(+34\,T + 16\,T\)</h3>
+<p>These are skewness correction terms. They capture the asymmetric deformation of the probability regions due to market skew. When \(\alpha = 0\) (symmetric Normal), Owen's T-function is zero and the expression reduces to the Normal model of Part II. When \(\alpha > 0\) (right-skewed, winner-take-most market), these terms increase, reflecting additional probability mass in the upper tail (more exceptional matches exist, which shifts expected outcomes). When \(\alpha < 0\) (left-skewed, evaluator perceives most candidates as mediocre), the T-terms reduce the decision value, making confession harder to justify unless \(\xi\) is clearly high.</p>
+
+<h2><span class="sn">§8</span> Behavioral Predictions of the Skew-Normal Model</h2>
+
+<p><strong>Prediction 1 — Attraction Tips Nonlinearly:</strong> Because the CDF-based probability regions are nonlinear in \(\xi\), small increases in perceived standing near the acceptance threshold produce disproportionately large improvements in the expected utility differential. Attraction "tips" rather than rises linearly, consistent with the subjective experience of sudden signal clarity.</p>
+
+<p><strong>Prediction 2 — High-Option Evaluators Expand the Bench Region:</strong> A larger \(\Delta\) directly widens \(P(B)\). This predicts more ambiguity, more delayed commitment, and more "situationship" dynamics among evaluators with abundant alternatives.</p>
+
+<p><strong>Prediction 3 — In Winner-Take-Most Markets, Moderate Attraction Is Insufficient:</strong> When \(\alpha > 0\) and \(\Delta\) is large, the confession decision requires substantially higher \(\xi\) to remain rational. Being merely liked is not enough when a few exceptional alternatives dominate the evaluator's comparison set.</p>
+
+<p><strong>Prediction 4 — Ambiguity Typically Means Bench, Not Reject:</strong> If signals suggest \(X > 0\) but \(X < \Delta\) (positive but sub-threshold), the model predicts benching rather than rejection. This is frequently misread as "mixed signals" when it is mathematically: "positive but sub-threshold valuation."</p>
+
+<div class="footnotes">
+  <p><strong>On Owen's T-function computation:</strong> \(T(h, a)\) does not have a simple closed form but can be computed numerically via quadrature. SciPy does not include it natively, but it can be approximated via numerical integration or via the relation to the bivariate normal CDF. The Python implementation in Part V uses \(\texttt{scipy.integrate.quad}\).</p>
+  <p><strong>On the skewness of desirability vs. the prior over parameters:</strong> The Skew-Normal in this part applies to the latent attractiveness variable \(X\). In Parts IV and V, a separate Bayesian prior is placed over the parameters \((\xi, \Delta)\) themselves. These are two distinct distributional layers and must not be conflated.</p>
+</div>
+
+<div class="part-footer">
+  <button class="next-btn" onclick="show(4, document.querySelectorAll('.nav a')[4])">Part IV: Bayesian Inference Framework &rarr;</button>
+</div>
+</div>
+
+</div>

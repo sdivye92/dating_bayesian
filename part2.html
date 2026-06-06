@@ -1,0 +1,290 @@
+<div id="p2" class="part">
+<div class="art-header">
+  <div class="part-label">Part II of V</div>
+  <h1>Benching, Dual Thresholds, and the Reservation Utility Model</h1>
+  <p class="sub">Extending the payoff matrix to three outcomes, deriving the dual-threshold reservation utility model, collapsing to relative variables &xi; and &Delta;, and obtaining the full three-outcome expected value criterion under a Normal and Skew-Normal latent distribution.</p>
+</div>
+
+<p class="dropcap">The binary payoff matrix of Part I cannot represent benching. This is not a cosmetic limitation. Benching is a structurally distinct outcome: the evaluator retains the confessor as an option without committing. It is neither acceptance nor rejection, and it carries a distinct utility signature. Any model that conflates benching with rejection or treats not-confessing as uniformly zero is misspecified.</p>
+
+<p>More importantly, the simple binary model treats the evaluator's response as a coin flip parameterized by a single probability \(p\). It gives no account of where \(p\) comes from or how the confessor's observable characteristics shape it. The deeper question is not "what is \(p\)?" but "what structural features of the evaluator's decision process generate the three-way outcome distribution?" The reservation utility model answers this question.</p>
+
+<h2><span class="sn">§1</span> Why Benching Is Structurally Necessary</h2>
+
+<p>An evaluator with abundant alternatives faces an optimal stopping problem. If they expect future partners to be better than the current confessor, the rational strategy is to delay commitment while preserving the current option. This is not malicious behavior; it is a consequence of rational search under uncertainty. The evaluator's internal decision rule is:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Evaluator's Internal Acceptance Condition</span>
+\[ V_A \geq \mathbb{E}[V_F] - C_S + C_L \]
+</div>
+
+<p>where \(V_A\) is the current confessor's value, \(\mathbb{E}[V_F]\) is the expected value of future options, \(C_S\) is the search cost of continued exploration, and \(C_L\) is the cost of losing the current option. When this condition fails, the evaluator benches rather than commits. The confessor's expected utility now depends not just on whether they are liked but on whether they are liked <em>enough relative to the evaluator's full option set and standards</em>.</p>
+
+<h2><span class="sn">§2</span> The Three-Outcome Payoff Matrix</h2>
+
+<p>We expand the outcome space to \(S \in \{A, B, R\}\) where \(A\) = Accept, \(B\) = Bench, \(R\) = Reject. The full payoff matrix from the confessor's perspective, where the evaluator's response is conditioned on their latent state, is:</p>
+
+<table>
+  <thead>
+    <tr><th>Action</th><th>Would Accept (A)</th><th>Would Bench (B)</th><th>Would Reject (R)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Confess (C)</td><td><span class="upos">u<sub>CA</sub> = +10</span></td><td><span class="uneg">u<sub>CB</sub> = &minus;3</span></td><td><span class="uneg">u<sub>CR</sub> = &minus;8</span></td></tr>
+    <tr><td>Don't Confess (D)</td><td><span class="uneg">u<sub>DA</sub> = &minus;6</span></td><td><span class="uneg">u<sub>DB</sub> = &minus;2</span></td><td><span class="upos">u<sub>DR</sub> = +1</span></td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <div class="callout-label">Justification of Each Cell</div>
+  <p style="font-size:16px;margin:0;">
+  <strong>C+A (+10):</strong> Romantic success, maximum outcome.<br>
+  <strong>C+B (&minus;3):</strong> Emotional limbo. The confessor is kept in hope without certainty, incurring opportunity cost and psychological investment without reciprocity. Many find benching psychologically worse than rejection because ambiguity extends rather than terminates the uncertainty.<br>
+  <strong>C+R (&minus;8):</strong> Full rejection, maximum negative outcome.<br>
+  <strong>D+A (&minus;6):</strong> Missed opportunity. The evaluator would have accepted but the confessor never acted. Strong regret, asymmetrically worse than benching because a full relationship was forgone.<br>
+  <strong>D+B (&minus;2):</strong> Continued uncertainty. The confessor remains in the evaluator's orbit without resolution. Mildly negative.<br>
+  <strong>D+R (+1):</strong> Correctly avoided a rejection. The dominant advantage of silence: when rejection was inevitable, not confessing preserved dignity and avoided social awkwardness.
+  </p>
+</div>
+
+<p>This matrix is no longer a decision against a strategic opponent. The evaluator's state is a hidden variable drawn by nature. The "Would Accept / Would Bench / Would Reject" columns refer to the evaluator's latent type, which exists regardless of whether confession occurs.</p>
+
+<h2><span class="sn">§3</span> Expected Utility With Three Outcomes</h2>
+
+<p>Let \(p_A, p_B, p_R\) denote the probabilities of the three evaluator states, with \(p_A + p_B + p_R = 1\). The expected utilities are:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Three-Outcome Expected Utilities</span>
+\[ \mathrm{EU}_C = u_{CA} p_A + u_{CB} p_B + u_{CR} p_R = 10p_A - 3p_B - 8p_R \]
+\[ \mathrm{EU}_D = u_{DA} p_A + u_{DB} p_B + u_{DR} p_R = -6p_A - 2p_B + p_R \]
+</div>
+
+<p>The rational decision criterion \(\mathrm{EU}_C > \mathrm{EU}_D\) gives:</p>
+
+<div class="eq-wrap">
+\[ 10p_A - 3p_B - 8p_R > -6p_A - 2p_B + p_R \]
+\[ 16p_A - p_B - 9p_R > 0 \]
+</div>
+
+<p>Substituting \(p_R = 1 - p_A - p_B\):</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Reduced Three-Outcome Threshold</span>
+\[ 16p_A - p_B - 9(1 - p_A - p_B) > 0 \]
+\[ 25p_A + 8p_B > 9 \]
+</div>
+
+<p>This is a nontrivial result. The benching probability \(p_B\) enters with a positive coefficient (+8), not a negative one. This appears paradoxical since benching produces negative utility (\(-3\) for confessing). The explanation: when we eliminate \(p_R\) by substitution, increasing \(p_B\) mechanically decreases \(p_R\), and rejection is far more damaging (\(-9\) coefficient in the full expression) than benching. So holding \(p_A\) fixed, a higher bench probability is better than a higher rejection probability. Benching hurts; rejection hurts more.</p>
+
+<p>However, the threshold condition \(25p_A + 8p_B > 9\) still contains two free parameters. We cannot evaluate it without knowing both \(p_A\) and \(p_B\) independently. This is the core structural problem that motivates the reservation utility model: rather than treating \(p_A, p_B, p_R\) as three independent parameters, we derive them from a single latent variable with a threshold structure.</p>
+
+<h2><span class="sn">§4</span> The Reservation Utility Model: Deriving Thresholds</h2>
+
+<p>The three probabilities \(p_A, p_B, p_R\) are not primitive. They arise from the evaluator's internal comparison of the confessor's perceived value against internal standards. The evaluator does not flip a three-sided coin; she applies a threshold-based selection rule to a latent continuous variable.</p>
+
+<h3>Girl's Internal Acceptance Rule</h3>
+
+<p>Let \(V \in \mathbb{R}\) denote the evaluator's latent perceived mate/relationship value of the confessor. This aggregates all relevant dimensions: attractiveness, status, humor, emotional compatibility, shared values. Define two thresholds:</p>
+
+<div class="defn">
+  <div class="defn-label">Threshold Definitions</div>
+  <p style="margin:0;">\(T_B\) (Bench Threshold): The minimum value \(V\) must reach for the evaluator to consider the confessor worth keeping around.<br><br>
+  \(T_A\) (Accept Threshold): The minimum value \(V\) must reach for the evaluator to commit immediately.<br><br>
+  Necessary structural constraint: \(T_A > T_B\). Commitment requires strictly greater valuation than minimum consideration.</p>
+</div>
+
+<h3>Outcome Mapping</h3>
+
+<div class="eq-wrap">
+<span class="eq-label">Threshold-Based Outcome Rule</span>
+\[
+S(V) = \begin{cases}
+R & V < T_B \\
+B & T_B \leq V < T_A \\
+A & V \geq T_A
+\end{cases}
+\]
+</div>
+
+<div class="thresh">
+  <div class="thresh-bar">
+    <div class="seg seg-r">REJECT<br><span style="font-size:10px;">V &lt; T_B</span></div>
+    <div class="seg seg-b">BENCH<br><span style="font-size:10px;">T_B &le; V &lt; T_A</span></div>
+    <div class="seg seg-a">ACCEPT<br><span style="font-size:10px;">V &ge; T_A</span></div>
+  </div>
+  <div class="thresh-axis">
+    <span>V &rarr; &minus;&infin;</span>
+    <span>T_B</span>
+    <span>T_A</span>
+    <span>V &rarr; +&infin;</span>
+  </div>
+</div>
+
+<h2><span class="sn">§5</span> Collapse to Single Latent Variable: The (&xi;, &Delta;) Reparameterization</h2>
+
+<p>Working directly with \((V, T_A, T_B)\) is cumbersome because the confessor does not reason about absolute values. The confessor reasons comparatively: "How do I stack up against her standards?" This comparative reasoning suggests a natural reparameterization.</p>
+
+<h3>Why This Reduction Is Natural</h3>
+
+<p>Define:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Relative Standing</span>
+\[ \xi = V - T_B \]
+</div>
+
+<p><strong>Interpretation:</strong> How far above or below the evaluator's minimum romantic consideration threshold the confessor sits. \(\xi < 0\) means below even the bench threshold: outright rejection. \(\xi \geq 0\) means above the minimum threshold: at least worth considering.</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Commitment Gap</span>
+\[ \Delta = T_A - T_B \]
+</div>
+
+<p><strong>Interpretation:</strong> The additional value above baseline liking required for immediate commitment. A high \(\Delta\) corresponds to a highly selective evaluator who requires a large margin above "acceptable" before committing. Structurally, \(\Delta > 0\) always (commitment requires more than minimum consideration).</p>
+
+<h3>Substitution Proof</h3>
+
+<div class="proof">
+  <div class="proof-label">Derivation of Reduced Threshold Rule</div>
+  <p>Reject condition \(V < T_B\): substituting \(V = \xi + T_B\) gives \(\xi + T_B < T_B \implies \xi < 0\). &check;</p>
+  <p>Bench condition \(T_B \leq V < T_A\): subtract \(T_B\) throughout: \(0 \leq V - T_B < T_A - T_B \implies 0 \leq \xi < \Delta\). &check;</p>
+  <p>Accept condition \(V \geq T_A\): subtract \(T_B\): \(V - T_B \geq T_A - T_B \implies \xi \geq \Delta\). &check;</p>
+</div>
+
+<div class="eq-wrap">
+<span class="eq-label">Reduced Threshold Formulation</span>
+\[
+S(\xi, \Delta) = \begin{cases}
+R & \xi < 0 \\
+B & 0 \leq \xi < \Delta \\
+A & \xi \geq \Delta
+\end{cases}
+\]
+</div>
+
+<p>This is the core structural result. The three-parameter problem \((V, T_A, T_B)\) has been reduced to a two-parameter problem \((\xi, \Delta)\). The confessor needs to estimate not three quantities but two: their standing relative to the bench threshold, and the evaluator's commitment gap.</p>
+
+<h3>Psychological Interpretation of Parameters</h3>
+
+<ul class="bul">
+  <li><strong>\(\xi\) (Relative Standing):</strong> Humans intuitively estimate this as "she seems into me somewhat" or "she shows signs of interest." It is the confessor's estimate of their comparative value.</li>
+  <li><strong>\(\Delta\) (Commitment Gap):</strong> This encodes selectiveness. "I like him but I'm not sure" reflects a large \(\Delta\): interest exists but the bar for commitment is not yet cleared. High-option evaluators have large \(\Delta\) because their reservation utility is high.</li>
+</ul>
+
+<h2><span class="sn">§6</span> Distributional Assumption: Normal Latent Variable</h2>
+
+<p>The confessor does not observe \(\xi\) or \(\Delta\) directly. They hold beliefs about these quantities. The simplest distributional assumption is:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Normal Latent Variable Assumption</span>
+\[ X \sim \mathcal{N}(\mu, \sigma^2) \]
+</div>
+
+<p>where \(X = V - T_B = \xi\) under deterministic threshold assumptions, and \(\mu\) represents the confessor's mean estimate of their relative standing. The three outcome probabilities become:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Probabilities via Normal CDF</span>
+\[ p_R = P(X < 0) = \Phi\!\left(\frac{-\mu}{\sigma}\right) \]
+\[ p_A = P(X \geq \Delta) = 1 - \Phi\!\left(\frac{\Delta - \mu}{\sigma}\right) \]
+\[ p_B = P(0 \leq X < \Delta) = \Phi\!\left(\frac{\Delta - \mu}{\sigma}\right) - \Phi\!\left(\frac{-\mu}{\sigma}\right) \]
+</div>
+
+<p>where \(\Phi\) is the standard normal CDF.</p>
+
+<h3>Is the Normal Assumption Correct?</h3>
+
+<p>The normal assumption is motivated by the central limit intuition: the latent value \(V\) aggregates many semi-independent factors (looks, status, humor, compatibility, chemistry), and the sum of many such factors tends toward normality. However, dating markets exhibit several features that violate normality:</p>
+
+<ul class="bul">
+  <li><strong>Winner-take-most effects:</strong> A small number of high-value individuals receive disproportionate attention, creating a right-skewed desirability distribution at the population level.</li>
+  <li><strong>Threshold clipping:</strong> Evaluators with many options apply high standards that compress the effective distribution of who reaches their awareness.</li>
+  <li><strong>Fat tails:</strong> Exceptional matches are more probable than a Gaussian would predict.</li>
+</ul>
+
+<p>For these reasons, a skew-normal distribution is more defensible. Part III develops the full skew-normal model. For the present section, we use the normal as a tractable first approximation.</p>
+
+<h2><span class="sn">§7</span> Full Expected Value Analysis Under the Normal Model</h2>
+
+<p>Substituting the normal CDF expressions into the expected utility formulas:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">EU(Confess) under Normal</span>
+\[
+\mathrm{EU}_C = 10p_A - 3p_B - 8p_R
+\]
+\[
+= 10\!\left[1 - \Phi\!\left(\frac{\Delta-\mu}{\sigma}\right)\right]
+- 3\!\left[\Phi\!\left(\frac{\Delta-\mu}{\sigma}\right) - \Phi\!\left(\frac{-\mu}{\sigma}\right)\right]
+- 8\Phi\!\left(\frac{-\mu}{\sigma}\right)
+\]
+</div>
+
+<p>Collecting terms by CDF argument:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Simplified EU(Confess)</span>
+\[ \mathrm{EU}_C = 10 - 13\,\Phi\!\left(\frac{\Delta - \mu}{\sigma}\right) - 5\,\Phi\!\left(\frac{-\mu}{\sigma}\right) \]
+</div>
+
+<p>Similarly for Don't Confess:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">EU(Don't Confess) under Normal</span>
+\[
+\mathrm{EU}_D = -6p_A - 2p_B + p_R
+\]
+\[
+= -6\!\left[1 - \Phi\!\left(\frac{\Delta-\mu}{\sigma}\right)\right]
+- 2\!\left[\Phi\!\left(\frac{\Delta-\mu}{\sigma}\right) - \Phi\!\left(\frac{-\mu}{\sigma}\right)\right]
++ \Phi\!\left(\frac{-\mu}{\sigma}\right)
+\]
+\[ = -6 + 4\,\Phi\!\left(\frac{\Delta - \mu}{\sigma}\right) + 3\,\Phi\!\left(\frac{-\mu}{\sigma}\right) \]
+</div>
+
+<h3>Final Decision Criterion under Normal</h3>
+
+<p>Confess iff \(\mathrm{EU}_C > \mathrm{EU}_D\):</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Normal-Model Decision Criterion</span>
+\[
+16 > 17\,\Phi\!\left(\frac{\Delta - \mu}{\sigma}\right) + 8\,\Phi\!\left(\frac{-\mu}{\sigma}\right)
+\]
+</div>
+
+<p>This implicitly defines a critical \(\mu^*\) such that confession is rational iff \(\mu > \mu^*\). The threshold depends on \(\Delta\) (selectiveness), \(\sigma\) (uncertainty), and the payoff structure. Crucially, the confessor now needs to estimate a single composite parameter \(\mu\) (their perceived standing relative to the bench threshold) rather than juggling three separate probabilities.</p>
+
+<h3>Psychological Interpretation of Parameters</h3>
+
+<table>
+  <thead>
+    <tr><th>Parameter</th><th>Meaning</th><th>Increases as</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>\(\mu\)</td><td>Estimated relative standing</td><td>She shows attraction, initiates, invests emotionally</td></tr>
+    <tr><td>\(\sigma\)</td><td>Uncertainty in standing estimate</td><td>Mixed signals, limited data, inconsistent behavior</td></tr>
+    <tr><td>\(\Delta\)</td><td>Her selectiveness gap</td><td>Many options, history of benching, expressed high standards</td></tr>
+  </tbody>
+</table>
+
+<h3>Key Model Insight</h3>
+
+<p>Even when the evaluator likes the confessor (\(\mu > 0\)), confession may be irrational if \(\mu < \Delta\): liking is insufficient. The confessor must exceed not just the bench threshold but the commitment threshold. This formalizes the intuition that "she likes me" is not the same as "she will accept." The gap \(\Delta\) is the mathematical representation of selectiveness, option abundance, and reservation utility in a single parameter.</p>
+
+<div class="dbox">
+  <div class="dbox-label">Part II Core Insight</div>
+  <div class="dbox-rule" style="font-size:16px;line-height:1.7;font-family:'EB Garamond',serif;">
+    Confession is rational iff posterior belief satisfies \(\mu > \mu^*\), where \(\mu^*\) is implicitly defined by \(16 = 17\,\Phi\!\left(\frac{\Delta - \mu^*}{\sigma}\right) + 8\,\Phi\!\left(\frac{-\mu^*}{\sigma}\right)\)
+  </div>
+</div>
+
+<div class="footnotes">
+  <p><strong>On negative \(\xi\):</strong> A negative value of \(\xi = V - T_B\) does not imply negative human worth. It means the confessor's perceived value falls below the evaluator's minimum consideration threshold, analogous to scoring below a passing mark on an exam. The reference point is the evaluator's internal standard, not an absolute scale.</p>
+  <p><strong>On the coefficient derivations:</strong> The coefficients 13 and 5 in the simplified EU(C) expression, and 4 and 3 in EU(D), come from distributing the three payoff values over the three CDF-defined probability regions and regrouping by CDF argument. The full algebra is shown above.</p>
+</div>
+
+<div class="part-footer">
+  <button class="next-btn" onclick="show(3, document.querySelectorAll('.nav a')[3])">Part III: Skew-Normal Full Derivation &rarr;</button>
+</div>
+</div>
+
+</div>

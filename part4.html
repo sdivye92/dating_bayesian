@@ -1,0 +1,318 @@
+<div id="p4" class="part">
+<div class="art-header">
+  <div class="part-label">Part IV of V</div>
+  <h1>The Bayesian Decision Framework: From Point Estimates to Posterior Inference</h1>
+  <p class="sub">Formalizing epistemic uncertainty over (&xi;, &Delta;) as a Bayesian posterior, deriving the full expected utility integrals, proving analytical intractability, establishing the necessity of MCMC, and specifying the likelihood model for observable signals.</p>
+</div>
+
+<p class="dropcap">The Skew-Normal model of Part III produces a closed-form decision function \(g(\xi, \Delta)\) that tells you whether to confess given known values of \(\xi\) and \(\Delta\). But the confessor never knows these values. They hold probabilistic beliefs about them, updated from observable evidence: texting patterns, initiation frequency, physical proximity, statements about commitment. The correct decision criterion is not to plug in point estimates of \(\xi\) and \(\Delta\) into \(g\); it is to average \(g\) over the posterior distribution of \((\xi, \Delta)\) given all observed evidence. This is the Bayesian decision-theoretic framework.</p>
+
+<h2><span class="sn">§1</span> Why Point Estimates Are Wrong</h2>
+
+<p>Suppose the confessor estimates \(\xi = 1.5, \Delta = 1.0\) as their best guess. Plugging in these values and evaluating \(g(1.5, 1.0)\) gives a single number. But this number ignores the fact that \(\xi\) might be 0.8 with probability 0.3, or 2.2 with probability 0.2. In nonlinear models, the expectation of a function is not the function evaluated at the expectation:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Jensen's Inequality (Nonlinear Case)</span>
+\[ g\!\left(\mathbb{E}[\xi], \mathbb{E}[\Delta]\right) \neq \mathbb{E}[g(\xi, \Delta)] \quad \text{in general} \]
+</div>
+
+<p>Since \(g\) is a nonlinear function of \((\xi, \Delta)\) (it contains CDF evaluations and Owen's T-functions), plugging in posterior means produces a biased estimate of the true expected decision value. Correct Bayesian decision-making requires integrating over the full posterior distribution.</p>
+
+<h2><span class="sn">§2</span> Formalizing Epistemic Uncertainty</h2>
+
+<p>The confessor does not know \(\xi\) or \(\Delta\). They observe a collection of behavioral signals:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Evidence Set</span>
+\[ E = \{e_1, e_2, \ldots, e_n\} \]
+</div>
+
+<p>These signals are noisy, indirect measurements of the latent parameters. Examples of signal types and the parameters they primarily inform:</p>
+
+<table class="sig-tbl">
+  <thead>
+    <tr><th>Signal</th><th>Primarily Informs</th><th>Direction</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Fast reply speed</td><td>\(\xi \uparrow\)</td><td>Higher standing</td></tr>
+    <tr><td>She initiates conversation</td><td>\(\xi \uparrow\)</td><td>Higher standing</td></tr>
+    <tr><td>Physical proximity / touch</td><td>\(\xi \uparrow\)</td><td>Higher standing</td></tr>
+    <tr><td>Dry, one-word replies</td><td>\(\xi \downarrow\)</td><td>Lower standing</td></tr>
+    <tr><td>"I'm not ready for a relationship"</td><td>\(\Delta \uparrow\)</td><td>Wider commitment gap</td></tr>
+    <tr><td>History of benching others</td><td>\(\Delta \uparrow\)</td><td>Wider commitment gap</td></tr>
+    <tr><td>Many visible suitors / options</td><td>\(\Delta \uparrow\), \(\alpha \uparrow\)</td><td>More selective</td></tr>
+    <tr><td>Mixed / inconsistent behavior</td><td>\(\omega \uparrow\)</td><td>More uncertainty</td></tr>
+    <tr><td>Commits quickly historically</td><td>\(\Delta \downarrow\)</td><td>Narrower gap</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="sn">§3</span> Prior Specification</h2>
+
+<p>Before observing any evidence, the confessor holds prior beliefs about \((\xi, \Delta)\). We specify a bivariate Normal prior with positivity constraint on \(\Delta\):</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Prior Distribution</span>
+\[ (\xi, \Delta) \sim \mathcal{N}(\mu_0, \Sigma_0) \]
+\[ \text{with truncation enforcing } \Delta > 0 \]
+</div>
+
+<div class="eq-wrap">
+\[ \mu_0 = \begin{bmatrix} 0 \\ 1.5 \end{bmatrix}, \quad \Sigma_0 = \begin{bmatrix} \sigma_\xi^2 & \rho\sigma_\xi\sigma_\Delta \\ \rho\sigma_\xi\sigma_\Delta & \sigma_\Delta^2 \end{bmatrix} \]
+</div>
+
+<p>The prior mean \(\mu_0 = [0, 1.5]^T\) encodes: (1) neutral prior on relative standing (no information about attraction), (2) moderate selectiveness gap of 1.5 units (evaluators typically require some margin above baseline liking before committing). The off-diagonal covariance term \(\rho\) captures correlation between perceived standing and selectiveness: if the confessor infers they are highly valued, they may simultaneously infer the evaluator is less selective about commitment.</p>
+
+<p>The truncation enforces the structural constraint \(\Delta > 0\). Under the log-prior parameterization, this is implemented by setting \(\log P(\xi, \Delta) = -\infty\) whenever \(\Delta \leq 0\), which causes MCMC to reject all such proposals.</p>
+
+<p><strong>Note on reparameterization:</strong> A more principled approach is to reparameterize \(\Delta = \exp(\eta)\) where \(\eta \in \mathbb{R}\), so positivity is automatic, the posterior geometry is smoother, and MCMC mixes better. The hard-truncation approach is pedagogically cleaner; the exponential reparameterization is recommended for production use.</p>
+
+<h2><span class="sn">§4</span> The Likelihood Model</h2>
+
+<p>Each observable signal \(e_i\) is modeled as a noisy measurement of the latent parameters. Assuming conditional independence given \((\xi, \Delta)\):</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Conditional Independence Likelihood</span>
+\[ P(E \mid \xi, \Delta) = \prod_{i=1}^{n} P(e_i \mid \xi, \Delta) \]
+</div>
+
+<p>In log-space (required for numerical stability):</p>
+
+<div class="eq-wrap">
+\[ \log P(E \mid \xi, \Delta) = \sum_{i=1}^{n} \log P(e_i \mid \xi, \Delta) \]
+</div>
+
+<h3>Signal-Specific Likelihood Models</h3>
+
+<p><strong>Binary attraction signals</strong> (e.g., did she initiate this conversation? \(e_i \in \{0, 1\}\)):</p>
+
+<div class="eq-wrap">
+\[ P(e_i = 1 \mid \xi) = \sigma(\beta_i \xi), \quad \sigma(x) = \frac{1}{1+e^{-x}} \]
+</div>
+
+<p>Higher \(\xi\) increases the probability of positive binary signals via the sigmoid link function. The coefficient \(\beta_i > 0\) controls signal sensitivity.</p>
+
+<p><strong>Response time signals</strong> (continuous, log-normal):</p>
+
+<div class="eq-wrap">
+\[ \log e_k \sim \mathcal{N}(\gamma_0 - \gamma_1 \xi,\; \tau_k^2) \]
+</div>
+
+<p>Higher \(\xi\) decreases expected log response time (faster replies indicate stronger interest). \(\gamma_0\) is the baseline log-response time and \(\gamma_1 > 0\) is the sensitivity parameter.</p>
+
+<p><strong>Commitment-avoidance signals</strong> (e.g., "I'm not ready for a relationship", \(e_j \in \{0,1\}\)):</p>
+
+<div class="eq-wrap">
+\[ P(e_j = 1 \mid \Delta) = \sigma(\beta_j \Delta) \]
+</div>
+
+<p>Higher \(\Delta\) (wider commitment gap, more selective evaluator) increases the probability of commitment-avoidance signals.</p>
+
+<p><strong>Continuous behavioral scores</strong> (e.g., self-assessed warmth on a scale):</p>
+
+<div class="eq-wrap">
+\[ e_i \mid \xi \sim \mathcal{N}(\xi,\; \sigma_e^2) \]
+</div>
+
+<p>This is the simplest model: each behavioral observation is a direct noisy measurement of relative standing \(\xi\), with observation noise \(\sigma_e\).</p>
+
+<h2><span class="sn">§5</span> Posterior Inference via Bayes Rule</h2>
+
+<div class="eq-wrap">
+<span class="eq-label">Posterior Distribution</span>
+\[ P(\xi, \Delta \mid E) = \frac{P(E \mid \xi, \Delta)\,P(\xi, \Delta)}{P(E)} \]
+</div>
+
+<p>The normalizing constant (evidence) is:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Evidence (Marginal Likelihood)</span>
+\[ P(E) = \iint P(E \mid \xi, \Delta)\,P(\xi, \Delta)\,d\xi\,d\Delta \]
+</div>
+
+<p>This is the first intractable integral. It is a two-dimensional integral over a nonlinear, non-conjugate likelihood times a truncated Gaussian prior. No closed form exists for the general case.</p>
+
+<h2><span class="sn">§6</span> The Posterior Expected Utility Integrals</h2>
+
+<p>Even if the posterior \(P(\xi, \Delta \mid E)\) were known analytically, computing the expected utilities would require further integration. By the definition of expectation for continuous random variables:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Bayesian Expected Utility — Confess</span>
+\[ \mathrm{EU}_C = \iint U_C(\xi, \Delta)\,P(\xi, \Delta \mid E)\,d\xi\,d\Delta \]
+</div>
+
+<div class="eq-wrap">
+<span class="eq-label">Bayesian Expected Utility — Don't Confess</span>
+\[ \mathrm{EU}_D = \iint U_D(\xi, \Delta)\,P(\xi, \Delta \mid E)\,d\xi\,d\Delta \]
+</div>
+
+<p>where the utility functions are piecewise-constant:</p>
+
+<div class="eq-wrap">
+\[
+U_C(\xi, \Delta) = \begin{cases} u_{CA} = 10 & \xi \geq \Delta \\ u_{CB} = -3 & 0 \leq \xi < \Delta \\ u_{CR} = -8 & \xi < 0 \end{cases}
+\quad
+U_D(\xi, \Delta) = \begin{cases} u_{DA} = -6 & \xi \geq \Delta \\ u_{DB} = -2 & 0 \leq \xi < \Delta \\ u_{DR} = +1 & \xi < 0 \end{cases}
+\]
+</div>
+
+<p>These piecewise integrals can be rewritten using posterior region probabilities:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Region Probability Decomposition</span>
+\[
+\mathrm{EU}_C = u_{CA}\underbrace{\iint_{\xi \geq \Delta} P(\xi,\Delta \mid E)\,d\xi\,d\Delta}_{P(A \mid E)}
++ u_{CB}\underbrace{\iint_{0 \leq \xi < \Delta} P(\xi,\Delta \mid E)\,d\xi\,d\Delta}_{P(B \mid E)}
++ u_{CR}\underbrace{\iint_{\xi < 0} P(\xi,\Delta \mid E)\,d\xi\,d\Delta}_{P(R \mid E)}
+\]
+</div>
+
+<p>So equivalently:</p>
+
+<div class="eq-wrap">
+\[ \mathrm{EU}_C = u_{CA}\,P(A \mid E) + u_{CB}\,P(B \mid E) + u_{CR}\,P(R \mid E) \]
+\[ \mathrm{EU}_D = u_{DA}\,P(A \mid E) + u_{DB}\,P(B \mid E) + u_{DR}\,P(R \mid E) \]
+</div>
+
+<h2><span class="sn">§7</span> Why Both Integrals Are Analytically Intractable</h2>
+
+<p>Three sources of intractability prevent closed-form computation:</p>
+
+<p><strong>1. Non-conjugate likelihood:</strong> The logistic and log-Normal likelihood models are not conjugate to the Gaussian prior on \((\xi, \Delta)\). The posterior is not in any standard distribution family.</p>
+
+<p><strong>2. Non-axis-aligned integration region:</strong> The region \(\xi \geq \Delta\) defines a half-plane in \((\xi, \Delta)\) space that is not aligned with either coordinate axis. The boundary is the line \(\xi = \Delta\), and integrating the posterior over this triangular region requires two-dimensional numerical integration.</p>
+
+<p><strong>3. Posterior geometry:</strong> The truncation \(\Delta > 0\), combined with nonlinear likelihoods, produces a posterior with unknown shape, possible multimodality, and skewed marginals. Standard quadrature methods become unreliable in high dimensions or non-standard geometries.</p>
+
+<p>Therefore, both the posterior distribution itself and the posterior expectations of utility are intractable. We require sampling-based approximate inference.</p>
+
+<h2><span class="sn">§8</span> Necessity of MCMC: Dual Purpose</h2>
+
+<p>MCMC sampling serves a dual purpose in this framework. It simultaneously:</p>
+
+<ol class="steps">
+  <li><strong>Approximates the posterior distribution</strong> \(P(\xi, \Delta \mid E)\) by generating samples from it without requiring the normalizing constant \(P(E)\). The Metropolis-Hastings acceptance ratio \(\min\!\left(1, \frac{P(E \mid \xi', \Delta')P(\xi', \Delta')}{P(E \mid \xi, \Delta)P(\xi, \Delta)}\right)\) depends only on the unnormalized posterior, which cancels \(P(E)\).</li>
+  <li><strong>Enables Monte Carlo estimation of posterior expectations</strong> via the Law of Large Numbers: for any function \(f(\xi, \Delta)\), if \((\xi^{(i)}, \Delta^{(i)}) \sim P(\xi, \Delta \mid E)\), then \(\frac{1}{N}\sum_{i=1}^N f(\xi^{(i)}, \Delta^{(i)}) \xrightarrow{N \to \infty} \mathbb{E}[f(\xi, \Delta) \mid E]\).</li>
+</ol>
+
+<p>Alternative inference methods include:</p>
+
+<ul class="bul">
+  <li><strong>Hamiltonian Monte Carlo / NUTS:</strong> Preferred for correlated posteriors. Uses gradient information to propose distant moves with high acceptance probability, dramatically reducing autocorrelation.</li>
+  <li><strong>Variational Inference:</strong> Approximates the posterior with a parametric family \(q_\phi(\xi, \Delta)\) by minimizing \(D_{KL}(q_\phi \| P(\xi, \Delta \mid E))\). Much faster than MCMC but introduces approximation error and may miss multimodal posteriors.</li>
+  <li><strong>Gibbs Sampling:</strong> Requires tractable conditional distributions \(P(\xi \mid \Delta, E)\) and \(P(\Delta \mid \xi, E)\). These are not generally available in our model given nonlinear likelihoods.</li>
+</ul>
+
+<h2><span class="sn">§9</span> The Monte Carlo Approximation</h2>
+
+<p>Given posterior samples \(\{(\xi^{(i)}, \Delta^{(i)})\}_{i=1}^N \sim P(\xi, \Delta \mid E)\):</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Monte Carlo Expected Utilities</span>
+\[ \mathrm{EU}_C \approx \frac{1}{N}\sum_{i=1}^{N} U_C\!\left(\xi^{(i)}, \Delta^{(i)}\right) \]
+\[ \mathrm{EU}_D \approx \frac{1}{N}\sum_{i=1}^{N} U_D\!\left(\xi^{(i)}, \Delta^{(i)}\right) \]
+</div>
+
+<p>By the Law of Large Numbers, these converge to the true posterior expectations as \(N \to \infty\). The Monte Carlo standard error scales as \(\sigma / \sqrt{N}\), where \(\sigma\) is the posterior standard deviation of the utility function. For \(N = 5000\) samples after burn-in, Monte Carlo error is typically negligible relative to the magnitude of \(\mathrm{EU}_C - \mathrm{EU}_D\).</p>
+
+<h2><span class="sn">§10</span> The Bayesian Decision Criterion</h2>
+
+<div class="dbox">
+  <div class="dbox-label">Final Bayesian Confession Criterion</div>
+  <div class="dbox-rule" style="font-size:17px;line-height:2;font-family:'EB Garamond',serif;">
+    \[ \text{Confess iff } \mathrm{EU}_C > \mathrm{EU}_D \]
+    <div style="font-size:14px;margin-top:8px;font-family:'JetBrains Mono',monospace;color:rgba(240,192,112,0.7);">
+      i.e., \(\iint U_C(\xi,\Delta)\,P(\xi,\Delta \mid E)\,d\xi\,d\Delta > \iint U_D(\xi,\Delta)\,P(\xi,\Delta \mid E)\,d\xi\,d\Delta\)
+    </div>
+  </div>
+</div>
+
+<p>Substituting payoff differences:</p>
+
+<div class="eq-wrap">
+\[
+(u_{CA} - u_{DA})\,P(A \mid E) + (u_{CB} - u_{DB})\,P(B \mid E) + (u_{CR} - u_{DR})\,P(R \mid E) > 0
+\]
+\[
+16\,P(A \mid E) - P(B \mid E) - 9\,P(R \mid E) > 0
+\]
+</div>
+
+<p>In compact form:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Compact Bayesian Criterion</span>
+\[ 16\,P(\xi \geq \Delta \mid E) - P(0 \leq \xi < \Delta \mid E) - 9\,P(\xi < 0 \mid E) > 0 \]
+</div>
+
+<p>This says: confess when the acceptance probability, weighted by 16, exceeds the bench and rejection probabilities weighted by 1 and 9 respectively. The weights come directly from the payoff matrix differences and are not tunable parameters.</p>
+
+<h2><span class="sn">§11</span> The Hierarchical Skew-Normal Bayesian Model</h2>
+
+<p>Combining the Skew-Normal latent structure from Part III with the Bayesian posterior from this part, the complete hierarchical model is:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Full Hierarchical Model</span>
+\[ (\xi, \Delta) \sim P(\xi, \Delta) \quad \text{(prior, truncated Gaussian, } \Delta > 0\text{)} \]
+\[ X \mid \xi \sim \mathrm{SN}(\xi, \omega, \alpha) \quad \text{(latent attractiveness draw)} \]
+\[ S = \begin{cases} R & X < 0 \\ B & 0 \leq X < \Delta \\ A & X \geq \Delta \end{cases} \quad \text{(outcome from latent draw)} \]
+\[ E_i \mid \xi, \Delta \sim P(E_i \mid \xi, \Delta) \quad \text{(observable signals)} \]
+</div>
+
+<p>The Bayesian posterior \(P(\xi, \Delta \mid E)\) is updated from observed signals. The outcome probabilities are computed from the Skew-Normal CDF:</p>
+
+<div class="eq-wrap">
+\[ P(A \mid \xi, \Delta) = 1 - F_{SN}(\Delta;\, \xi, \omega, \alpha) \]
+\[ P(B \mid \xi, \Delta) = F_{SN}(\Delta;\, \xi, \omega, \alpha) - F_{SN}(0;\, \xi, \omega, \alpha) \]
+\[ P(R \mid \xi, \Delta) = F_{SN}(0;\, \xi, \omega, \alpha) \]
+</div>
+
+<p>The expected utility integrals become:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Full Bayesian Expected Utility</span>
+\[
+\mathrm{EU}_C = \iint \left[u_{CA}\,P(A \mid \xi, \Delta) + u_{CB}\,P(B \mid \xi, \Delta) + u_{CR}\,P(R \mid \xi, \Delta)\right] P(\xi, \Delta \mid E)\,d\xi\,d\Delta
+\]
+</div>
+
+<p>Substituting the closed-form decision function \(g(\xi, \Delta) = \mathrm{EU}_C(\xi, \Delta) - \mathrm{EU}_D(\xi, \Delta)\) from Part III:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Bayesian Expected Decision Value</span>
+\[
+\mathbb{E}[g \mid E] = \iint g(\xi, \Delta)\,P(\xi, \Delta \mid E)\,d\xi\,d\Delta
+\approx \frac{1}{N}\sum_{i=1}^{N} g\!\left(\xi^{(i)}, \Delta^{(i)}\right)
+\]
+</div>
+
+<div class="dbox">
+  <div class="dbox-label">Final Hierarchical Criterion</div>
+  <div class="dbox-rule" style="font-size:16px;">Confess iff \(\mathbb{E}[g(\xi, \Delta) \mid E] > 0\)</div>
+</div>
+
+<h2><span class="sn">§12</span> Why This Is Better Than Folk Heuristics</h2>
+
+<p>The common heuristic "she seems interested" conflates two distinct conditions:</p>
+
+<table>
+  <thead><tr><th>Condition</th><th>Mathematical Translation</th><th>Sufficient for Confession?</th></tr></thead>
+  <tbody>
+    <tr><td>Interest (above bench threshold)</td><td>\(\xi > 0\)</td><td>No</td></tr>
+    <tr><td>Commitment-worthy interest</td><td>\(\xi \geq \Delta\)</td><td>Yes</td></tr>
+    <tr><td>Bayesian posterior-weighted adequacy</td><td>\(\mathbb{E}[g \mid E] > 0\)</td><td>Yes (formal criterion)</td></tr>
+  </tbody>
+</table>
+
+<p>The formal criterion accounts for uncertainty, benching probability, the evaluator's selectiveness, and the asymmetric payoff structure simultaneously. Folk heuristics typically capture only the first condition and draw incorrect conclusions from it.</p>
+
+<div class="footnotes">
+  <p><strong>On the Bayesian posterior vs. the Skew-Normal:</strong> The Skew-Normal describes the distribution of the latent attractiveness variable \(X\) conditional on parameters \((\xi, \Delta)\). The Bayesian posterior is over the parameters \((\xi, \Delta)\) themselves. These are different distributional objects at different levels of the model hierarchy.</p>
+  <p><strong>On the simplification used in practice:</strong> Treating \(\omega, \alpha\) as fixed hyperparameters (rather than updating them Bayesianly) is the "simplified Bayesian" version. It is statistically reasonable if the evaluator's market context (skewness, perception noise) is stable and the confessor has a reasonable prior on these quantities from general social experience.</p>
+</div>
+
+<div class="part-footer">
+  <button class="next-btn" onclick="show(5, document.querySelectorAll('.nav a')[5])">Part V: Full Python Pipeline &rarr;</button>
+</div>
+</div>
+
+</div>

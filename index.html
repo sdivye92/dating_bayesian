@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Should You Confess? A Bayesian Decision-Theoretic Framework</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="./style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav-brand">Should You Confess?</span>
+  <a href="#" class="active" onclick="show(1,this);return false;">Part I</a>
+  <a href="#" onclick="show(2,this);return false;">Part II</a>
+  <a href="#" onclick="show(3,this);return false;">Part III</a>
+  <a href="#" onclick="show(4,this);return false;">Part IV</a>
+  <a href="#" onclick="show(5,this);return false;">Part V</a>
+</nav>
+
+<div id="p1" class="part active"></div>
+<div id="p2" class="part"></div>
+<div id="p3" class="part"></div>
+<div id="p4" class="part"></div>
+<div id="p5" class="part"></div>
+
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+};
+
+// Load part files
+async function loadParts() {
+  const parts = ['part1', 'part2', 'part3', 'part4', 'part5'];
+
+  for (let i = 0; i < parts.length; i++) {
+    try {
+      const response = await fetch(`${parts[i]}.html`);
+      const content = await response.text();
+      document.getElementById(`p${i + 1}`).innerHTML = content;
+    } catch (error) {
+      console.error(`Failed to load ${parts[i]}.html:`, error);
+      document.getElementById(`p${i + 1}`).innerHTML = `<p>Error loading part ${i + 1}</p>`;
+    }
+  }
+
+  // Trigger MathJax re-render after content is loaded
+  if (window.MathJax) {
+    window.MathJax.typesetPromise().catch(err => console.log(err));
+  }
+}
+
+function show(n, el) {
+  document.querySelectorAll('.part').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('p' + n).classList.add('active');
+  if (el) el.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// Load all parts when page loads
+document.addEventListener('DOMContentLoaded', loadParts);
+</script>
+</body>
+</html>

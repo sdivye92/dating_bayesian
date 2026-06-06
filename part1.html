@@ -1,0 +1,293 @@
+<div id="p1" class="part active">
+<div class="art-header">
+  <div class="part-label">Part I of V</div>
+  <h1>The Payoff Matrix and the Expected Value of Confession</h1>
+  <p class="sub">From a two-player signaling game to the general threshold condition, with full derivation of the regret-corrected confession criterion and Python implementation.</p>
+</div>
+
+<p class="dropcap">Every act of romantic confession is a bet placed under uncertainty. The confessor does not know the evaluator's internal state of attraction. The evaluator has not revealed whether they would reciprocate, defer, or reject. From the confessor's perspective, the outcome is a random variable. From the standpoint of decision theory, this means the problem is well-posed: choose the action that maximizes expected utility over the distribution of possible outcomes.</p>
+
+<p>This article series develops a rigorous Bayesian decision-theoretic model of that choice, progressing from a simple two-outcome payoff matrix through a reservation-utility threshold model, to a full hierarchical Bayesian framework with a skew-normal latent desirability distribution, closed-form expected utility expressions, and an MCMC-based posterior inference pipeline. Each part extends the previous one by identifying a gap in the model and filling it with additional mathematical structure. This first part establishes the foundational payoff matrix and derives the basic expected value criterion.</p>
+
+<h2><span class="sn">§1</span> The Two-Player Game and Payoff Matrix</h2>
+
+<p>We begin by framing the confession decision as a game between two players. Let Player A be the confessor and Player B be the evaluator. Player A chooses from the action space:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Action Space</span>
+\[ a \in \{C, D\} \]
+</div>
+
+<p>where \(C\) denotes confessing romantic interest and \(D\) denotes not confessing. Player B has a latent preference which is not yet revealed. We initially model this preference as binary: the evaluator either reciprocates (\(R^+\)) or rejects (\(R^-\)). The game is not a standard simultaneous-move game. Player A moves first and Player B responds conditionally on confession occurring. This is closer to a signaling game than a Prisoner's Dilemma, though the Prisoner's Dilemma structure provides useful intuition for the asymmetric risk structure.</p>
+
+<p>Utilities are subjective psychological values, not objective measures. They encode the emotional consequences of each outcome from the confessor's perspective. The initial payoff matrix is:</p>
+
+<table>
+  <thead>
+    <tr><th>Player A Action</th><th>B Reciprocates</th><th>B Rejects</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Confess (C)</td><td><span class="upos">+10</span></td><td><span class="uneg">&minus;8</span></td></tr>
+    <tr><td>Don't Confess (D)</td><td><span class="uneu">0</span></td><td><span class="uneu">0</span></td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <div class="callout-label">Utility Interpretation</div>
+  <p style="margin:0;font-size:16px;"><strong>Confess + Reciprocate (+10):</strong> Romantic success, validation, resolution of uncertainty, reward for risk-taking.<br>
+  <strong>Confess + Reject (&minus;8):</strong> Rejection pain, ego cost, possible social awkwardness, loss of the friendship equilibrium.<br>
+  <strong>Don't Confess (both = 0):</strong> The current status quo is treated as baseline zero. No new information, no new emotional consequence.</p>
+</div>
+
+<p>The asymmetry in utility magnitudes reflects a real feature of confession dynamics: the evaluator who rejects pays only a mild social discomfort cost (typically near zero or slightly positive from validation), while the confessor who is rejected absorbs a large negative shock. This is the core risk asymmetry that makes confession a non-trivial decision problem.</p>
+
+<p>The evaluator's payoffs, while informative for game-theoretic analysis, are not the primary object of study here. The confessor's decision problem is one of decision under uncertainty, not strategic equilibrium: the evaluator's preference is a hidden state of the world, not a strategic choice in response to the confessor's move.</p>
+
+<h2><span class="sn">§2</span> Expected Value Analysis: The Baseline Case</h2>
+
+<p>Let \(p\) denote the confessor's subjective probability that the evaluator would reciprocate. Since the payoff to not confessing is zero in both branches, the decision reduces to the sign of the expected utility of confessing.</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Expected Utility of Confessing</span>
+\[ \mathrm{EU}(C) = p \cdot 10 + (1-p) \cdot (-8) = 10p - 8 + 8p = 18p - 8 \]
+</div>
+
+<div class="eq-wrap">
+<span class="eq-label">Expected Utility of Not Confessing</span>
+\[ \mathrm{EU}(D) = p \cdot 0 + (1-p) \cdot 0 = 0 \]
+</div>
+
+<p>The rational confession criterion is \(\mathrm{EU}(C) > \mathrm{EU}(D)\), which gives:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Rational Confession Threshold (Baseline)</span>
+\[ 18p - 8 > 0 \implies p > \frac{8}{18} \approx 0.444 \]
+</div>
+
+<p>This says: confessing is rational only if the confessor assigns at least a 44.4% probability to reciprocation. Below that threshold, the expected rejection cost outweighs the expected acceptance gain. This is the simplest possible model, and it already produces a non-trivial quantitative prediction.</p>
+
+<h2><span class="sn">§3</span> The Regret Problem: Why the Don't-Confess Row Cannot Be Zero</h2>
+
+<p>The baseline model treats not confessing as a null outcome in both branches. This is psychologically inaccurate. Consider the branch where the evaluator would have reciprocated but the confessor chose silence. The confessor does not receive zero: they receive a missed-opportunity cost, a regret for never having acted. Let \(R \geq 0\) denote this regret utility cost. The corrected payoff matrix becomes:</p>
+
+<table>
+  <thead>
+    <tr><th>Action</th><th>Would Reciprocate</th><th>Would Reject</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Confess (C)</td><td><span class="upos">+10</span></td><td><span class="uneg">&minus;8</span></td></tr>
+    <tr><td>Don't Confess (D)</td><td><span class="uneg">&minus;R</span></td><td><span class="uneu">0</span></td></tr>
+  </tbody>
+</table>
+
+<p>The evaluator's latent preference is now treated explicitly as a hidden state of the world rather than a simultaneous strategic move. Nature draws the evaluator's type from a Bernoulli distribution with parameter \(p\), and then the confessor acts. The expected utilities become:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Corrected Expected Utilities</span>
+\[ \mathrm{EU}(C) = 10p + (-8)(1-p) = 18p - 8 \]
+\[ \mathrm{EU}(D) = (-R)p + 0 \cdot (1-p) = -pR \]
+</div>
+
+<p>The rational confession criterion \(\mathrm{EU}(C) > \mathrm{EU}(D)\) now gives:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Regret-Corrected Comparison</span>
+\[ 18p - 8 > -pR \]
+\[ 18p + pR > 8 \]
+\[ p(18 + R) > 8 \]
+</div>
+
+<div class="dbox">
+  <div class="dbox-label">Generalized Confession Threshold</div>
+  <div class="dbox-rule">\[ p > \frac{8}{18 + R} = \frac{\mathrm{Loss}_{\mathrm{rejection}}}{\mathrm{Gain}_{\mathrm{success}} + \mathrm{Loss}_{\mathrm{rejection}} + \mathrm{Regret}_{\mathrm{silence}}} \]</div>
+</div>
+
+<p>This is the psychological threshold model in its most general form. The denominator grows with regret, driving the threshold downward. A confessor who dreads "never knowing" more than they dread rejection will operate with a lower threshold for action. Let us trace this numerically:</p>
+
+<table>
+  <thead>
+    <tr><th>Regret Cost (R)</th><th>Threshold p*</th><th>Interpretation</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>R = 0</td><td>p* = 8/18 &approx; 0.444</td><td>Baseline, no regret</td></tr>
+    <tr><td>R = 4</td><td>p* = 8/22 &approx; 0.364</td><td>Moderate regret aversion</td></tr>
+    <tr><td>R = 10</td><td>p* = 8/28 &approx; 0.286</td><td>High regret aversion</td></tr>
+    <tr><td>R = 18</td><td>p* = 8/36 &approx; 0.222</td><td>Regret = rejection cost</td></tr>
+  </tbody>
+</table>
+
+<p>This table explains a well-documented behavioral phenomenon: people confess even when they estimate their chances are well below 50%. They are not irrational. They are incorporating a regret term that the naive EV calculation omits. As \(R \uparrow\), the threshold \(p^* \downarrow\), making confession increasingly rational even at low odds.</p>
+
+<h2><span class="sn">§4</span> Psychological Complicators: Why Real Humans Deviate from EV</h2>
+
+<p>The expected value model captures the first-order structure of the decision. But three systematic deviations from pure EV maximization are documented in behavioral psychology, each of which can be incorporated into the utility framework.</p>
+
+<h3>Regret Aversion</h3>
+<p>As formalized above: \(\mathrm{Pain}_{\mathrm{regret}} > \mathrm{Pain}_{\mathrm{rejection}}\) for many individuals. The utility formulation already accommodates this by making \(R\) an explicit model parameter. When \(R\) is large, the regret of silence dominates the fear of rejection, and the threshold drops accordingly.</p>
+
+<h3>Signaling Value of Confession</h3>
+<p>The act of confession itself carries utility independent of its outcome. A confessor who values authenticity, courage, or the subjective experience of having acted on their feelings receives positive utility from confessing regardless of the response. Let \(\sigma \geq 0\) denote this intrinsic signaling utility. Then the effective rejection payoff becomes \(-8 + \sigma\), reducing the effective loss and further lowering the threshold.</p>
+
+<h3>Repeated Game Effects</h3>
+<p>Dating is not a one-shot game. In a repeated game, even a rejected confession produces information: it updates beliefs about the evaluator's type, calibrates future social judgments, builds resilience, and improves the confessor's skill at reading signals. The long-run expected value of confessing may therefore exceed the single-interaction expected value even when the immediate EV is negative:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Lifetime EV Dominance Condition</span>
+\[ \mathrm{EV}_{\mathrm{lifetime}} > \mathrm{EV}_{\mathrm{single}} \]
+</div>
+
+<p>This provides a decision-theoretic justification for the folk advice "rejection is better than regret," which is not naive optimism but a correct calculation over a longer time horizon.</p>
+
+<h2><span class="sn">§5</span> Why a Selective Evaluator Changes the Equilibrium</h2>
+
+<p>The model so far treats the reciprocation probability \(p\) as a fixed exogenous parameter. But \(p\) is endogenous to the evaluator's option set. A person with many alternatives has a higher effective reservation utility: the minimum value a partner must provide before commitment becomes rational. As their option abundance increases, \(p\) for any given confessor decreases, because the evaluator's standards rise with the perceived quality of available alternatives. This creates the market asymmetry captured by:</p>
+
+<div class="eq-wrap">
+\[ U_{\mathrm{male,accept}} \gg U_{\mathrm{female,accept}} \]
+\[ |U_{\mathrm{male,reject}}| \gg |U_{\mathrm{female,rejecting}}| \]
+</div>
+
+<p>This is not a normative claim about fairness. It is a descriptive observation about asymmetric market conditions: one side bears the initiation risk while the other side holds an option portfolio that makes the marginal value of any single offer lower.</p>
+
+<p>The key insight is that the rational strategy is not to manipulate \(p\) at the moment of confession, but to invest in raising the evaluator's latent valuation of the confessor before the confession occurs. High-success confessions happen when \(p\) is already high because attraction has been pre-established; the confession then functions as coordination, not persuasion.</p>
+
+<h2><span class="sn">§6</span> Python Implementation: Simple Payoff Matrix Calculator</h2>
+
+<p>The following code implements the two-outcome payoff model, computes the EV threshold for any payoff specification and regret parameter, and evaluates the rational decision for a given prior \(p\).</p>
+
+<div class="code-label">// part1_simple_ev.py</div>
+<pre class="code">
+<span class="cm"># ============================================================
+# Part I: Simple Payoff Matrix EV Calculator
+# ============================================================
+#
+# NUMBER JUSTIFICATIONS:
+#   u_C_accept = +10 : Romantic success; high because confession
+#                      resolves uncertainty and creates relationship
+#                      possibility. Asymmetrically positive.
+#
+#   u_C_reject = -8  : Rejection pain. Accounts for ego cost,
+#                      social awkwardness, possible friendship loss.
+#                      Magnitude chosen < 10 to reflect that
+#                      success is more valuable than rejection hurts,
+#                      but close enough to create a meaningful
+#                      threshold above random chance.
+#
+#   u_D_accept = -R  : Regret/opportunity cost. Parameterized
+#                      explicitly so threshold sensitivity can
+#                      be explored.
+#
+#   u_D_reject = 0   : Correct avoidance. Clean zero: no social
+#                      cost, no gain.
+# ============================================================</span>
+
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+
+<span class="cm"># --- Payoff values ---</span>
+U_C_ACCEPT = <span class="nu">10</span>    <span class="cm"># Confess + Reciprocate</span>
+U_C_REJECT = <span class="nu">-8</span>    <span class="cm"># Confess + Reject</span>
+U_D_REJECT = <span class="nu">0</span>     <span class="cm"># Don't Confess + Would Reject (baseline)</span>
+
+
+<span class="kw">def</span> <span class="fn">expected_utility_confess</span>(p):
+    <span class="st">"""EU(Confess) = 10p + (-8)(1-p) = 18p - 8"""</span>
+    <span class="kw">return</span> U_C_ACCEPT * p + U_C_REJECT * (<span class="nu">1</span> - p)
+
+
+<span class="kw">def</span> <span class="fn">expected_utility_dont_confess</span>(p, R=<span class="nu">0</span>):
+    <span class="st">"""EU(Don't Confess) = -R*p + 0*(1-p) = -pR
+    R: regret cost for missed reciprocation opportunity.
+       0  = no regret (baseline)
+       4  = moderate regret aversion
+       10 = strong regret aversion (common in practice)
+    """</span>
+    <span class="kw">return</span> -R * p
+
+
+<span class="kw">def</span> <span class="fn">confession_threshold</span>(R=<span class="nu">0</span>):
+    <span class="st">"""
+    Threshold p* such that confessing is rational iff p > p*.
+    Derived from: 18p - 8 > -pR => p(18+R) > 8 => p > 8/(18+R)
+    Generalizes to: Loss_rejection / (Gain + Loss + Regret)
+    """</span>
+    gain  = U_C_ACCEPT           <span class="cm"># +10</span>
+    loss  = abs(U_C_REJECT)      <span class="cm"># 8</span>
+    regret = R
+    <span class="kw">return</span> loss / (gain + loss + regret)
+
+
+<span class="kw">def</span> <span class="fn">should_confess</span>(p, R=<span class="nu">0</span>):
+    eu_c = expected_utility_confess(p)
+    eu_d = expected_utility_dont_confess(p, R)
+    threshold = confession_threshold(R)
+    <span class="kw">return</span> {
+        <span class="st">"EU_confess"</span>       : <span class="fn">round</span>(eu_c, <span class="nu">4</span>),
+        <span class="st">"EU_dont_confess"</span>  : <span class="fn">round</span>(eu_d, <span class="nu">4</span>),
+        <span class="st">"threshold_p_star"</span> : <span class="fn">round</span>(threshold, <span class="nu">4</span>),
+        <span class="st">"decision"</span>         : <span class="st">"CONFESS"</span> <span class="kw">if</span> p > threshold <span class="kw">else</span> <span class="st">"DON'T CONFESS"</span>,
+    }
+
+
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    <span class="fn">print</span>(<span class="st">"=== Threshold Sensitivity to Regret ==="</span>)
+    <span class="kw">for</span> R <span class="kw">in</span> [<span class="nu">0</span>, <span class="nu">4</span>, <span class="nu">10</span>, <span class="nu">18</span>]:
+        t = confession_threshold(R)
+        <span class="fn">print</span>(<span class="st">f"R={R:>3}  p* = {t:.3f}  (confess iff p > {t:.3f})"</span>)
+
+    <span class="fn">print</span>(<span class="st">"\n=== Decision for p=0.35, varying R ==="</span>)
+    p = <span class="nu">0.35</span>
+    <span class="kw">for</span> R <span class="kw">in</span> [<span class="nu">0</span>, <span class="nu">4</span>, <span class="nu">10</span>]:
+        result = should_confess(p, R)
+        <span class="fn">print</span>(<span class="st">f"R={R:>3}: EU(C)={result['EU_confess']:>7.3f}, "</span>
+              <span class="st">f"EU(D)={result['EU_dont_confess']:>7.3f}, "</span>
+              <span class="st">f"Decision: {result['decision']}"</span>)
+</pre>
+
+<h3>Expected Output</h3>
+<pre class="code" style="margin-top:0;">
+=== Threshold Sensitivity to Regret ===
+R=  0  p* = 0.444  (confess iff p > 0.444)
+R=  4  p* = 0.364  (confess iff p > 0.364)
+R= 10  p* = 0.286  (confess iff p > 0.286)
+R= 18  p* = 0.222  (confess iff p > 0.222)
+
+=== Decision for p=0.35, varying R ===
+R=  0: EU(C)= -1.700, EU(D)=  0.000, Decision: DON'T CONFESS
+R=  4: EU(C)= -1.700, EU(D)= -1.400, Decision: DON'T CONFESS
+R= 10: EU(C)= -1.700, EU(D)= -3.500, Decision: CONFESS
+</pre>
+
+<p>The third row is the key result: the same \(p = 0.35\) that produces a "don't confess" decision under no regret flips to "confess" when regret is sufficiently large. The underlying EV of confessing did not change; what changed is the cost of the alternative.</p>
+
+<h2><span class="sn">§7</span> The Hidden State Structure: Why This Is Not a Standard Game</h2>
+
+<p>The payoff matrix should not be misread as a standard simultaneous strategic game. The evaluator's "choice" (reciprocate or reject) is not a free strategic decision made in response to the confessor's action. It is better modeled as:</p>
+
+<div class="eq-wrap">
+<span class="eq-label">Nature's Move</span>
+\[ \text{Nature draws evaluator type } T \sim \mathrm{Bernoulli}(p) \]
+</div>
+
+<p>where \(T = 1\) means the evaluator would reciprocate and \(T = 0\) means they would reject. The confessor then decides \(a \in \{C, D\}\). The outcome realizes according to the payoff matrix. This is a decision under uncertainty, not a game against a strategic opponent. The evaluator's response is determined before the confessor acts; the confessor simply does not know it.</p>
+
+<p>This distinction matters because it determines the correct analytical apparatus. The problem is not solved by Nash equilibrium concepts; it is solved by expected utility maximization over a subjective probability distribution. That distribution is what the Bayesian framework, introduced in Parts III through V, will formally characterize and update from evidence.</p>
+
+<div class="dbox">
+  <div class="dbox-label">Part I Summary</div>
+  <div class="dbox-rule" style="font-size:16px;line-height:1.7;font-family:'EB Garamond',serif;">
+    Confess iff \(\displaystyle p > \frac{\mathrm{Loss}_{\mathrm{rejection}}}{\mathrm{Gain}_{\mathrm{success}} + \mathrm{Loss}_{\mathrm{rejection}} + \mathrm{Regret}_{\mathrm{silence}}}\)
+  </div>
+</div>
+
+<div class="footnotes">
+  <p><strong>On the binary model:</strong> The two-outcome payoff matrix (reciprocate / reject) is used here as a pedagogical starting point only. Part II shows why it is structurally inadequate and introduces the three-outcome model with benching.</p>
+  <p><strong>On utility magnitudes:</strong> The values +10, &minus;8 are chosen to produce a threshold near 0.44, reflecting the asymmetric but not extreme risk structure of confession. They are psychologically motivated ordinal utilities. What matters is the ratio, not the scale.</p>
+</div>
+
+<div class="part-footer">
+  <button class="next-btn" onclick="show(2, document.querySelectorAll('.nav a')[2])">Part II: The Three-Outcome Model &rarr;</button>
+</div>
+</div>
+
+</div>
